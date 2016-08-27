@@ -80,6 +80,12 @@ public class Command_saconfig extends FreedomCommand
                     return true;
                 }
 
+                if (rank.isConsole())
+                {
+                    msg("You may not set rank to console variables.", ChatColor.RED);
+                    return true;
+                }
+
                 Admin admin = plugin.al.getEntryByName(args[1]);
                 if (admin == null)
                 {

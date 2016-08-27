@@ -88,7 +88,7 @@ public class ChatManager extends FreedomService
         event.setMessage(message);
 
         // Make format
-        String format = "<%1$s> %2$s";
+        String format = " %1$s: %2$s";
 
         String tag = fPlayer.getTag();
         if (tag != null && !tag.isEmpty())
@@ -109,7 +109,7 @@ public class ChatManager extends FreedomService
         {
             if (plugin.al.isAdmin(player))
             {
-                player.sendMessage("[" + ChatColor.AQUA + "ADMIN" + ChatColor.WHITE + "] " + ChatColor.DARK_RED + name + ": " + ChatColor.GOLD + message);
+                player.sendMessage("[" + ChatColor.LIGHT_PURPLE + "ADMIN" + ChatColor.WHITE + "] " + ChatColor.YELLOW + name + ": " + ChatColor.AQUA + message);
             }
         }
     }

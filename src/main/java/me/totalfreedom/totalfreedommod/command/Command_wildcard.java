@@ -1,5 +1,7 @@
 package me.totalfreedom.totalfreedommod.command;
 
+import java.util.Arrays;
+import java.util.List;
 import me.totalfreedom.totalfreedommod.rank.Rank;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
@@ -12,6 +14,13 @@ import org.bukkit.entity.Player;
 public class Command_wildcard extends FreedomCommand
 {
 
+    public static final List<String> BLOCKED_COMMANDS = Arrays.asList(
+            "wildcard",
+            "gtfo",
+            "doom",
+            "saconfig"
+    );
+
     @Override
     public boolean run(CommandSender sender, Player playerSender, Command cmd, String commandLabel, String[] args, boolean senderIsConsole)
     {
@@ -20,24 +29,16 @@ public class Command_wildcard extends FreedomCommand
             return false;
         }
 
-        if (args[0].equals("wildcard"))
+        Command runCmd = server.getPluginCommand(args[0]);
+        if (runCmd == null)
         {
-            msg("What the hell are you trying to do, you stupid idiot...", ChatColor.RED);
+            msg("Unknown command: " + args[0]);
             return true;
         }
-        if (args[0].equals("gtfo"))
+
+        if (BLOCKED_COMMANDS.contains(runCmd.getName()))
         {
-            msg("Nice try", ChatColor.RED);
-            return true;
-        }
-        if (args[0].equals("doom"))
-        {
-            msg("Look, we all hate people, but this is not the way to deal with it, doom is evil enough!", ChatColor.RED);
-            return true;
-        }
-        if (args[0].equals("saconfig"))
-        {
-            msg("WOA, WTF are you trying to do???", ChatColor.RED);
+            msg("Woah, what is wrong with you?", ChatColor.RED);
             return true;
         }
 
@@ -51,9 +52,9 @@ public class Command_wildcard extends FreedomCommand
 
         for (Player player : server.getOnlinePlayers())
         {
-            String out_command = baseCommand.replaceAll("\\x3f", player.getName());
-            msg("Running Command: " + out_command);
-            server.dispatchCommand(sender, out_command);
+            baseCommand = baseCommand.replaceAll("\\x3f", player.getName());
+            msg("Running Command: " + baseCommand);
+            server.dispatchCommand(sender, baseCommand);
         }
 
         return true;

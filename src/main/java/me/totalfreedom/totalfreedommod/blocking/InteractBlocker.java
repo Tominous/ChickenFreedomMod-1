@@ -33,9 +33,6 @@ public class InteractBlocker extends FreedomService
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(PlayerInteractEvent event)
     {
-        final Player player = event.getPlayer();
-        final FPlayer playerdata = plugin.pl.getPlayer(player);
-
         switch (event.getAction())
         {
             case RIGHT_CLICK_AIR:
@@ -97,6 +94,24 @@ public class InteractBlocker extends FreedomService
                 player.sendMessage(ChatColor.GRAY + "TNT minecarts are currently disabled.");
                 event.setCancelled(true);
                 break;
+            }
+
+            case SIGN:
+            case SIGN_POST:
+            case WALL_SIGN:
+            {
+                player.sendMessage(ChatColor.GRAY + "Sign interaction is currently disabed");
+                break;
+            }
+
+            case COMMAND:
+            case COMMAND_MINECART:
+            {
+                if (!plugin.al.isSeniorAdmin(player))
+                {
+                    player.sendMessage(ChatColor.GRAY + "Command blocks are disabled to non-senior admins");
+                    break;
+                }
             }
         }
     }

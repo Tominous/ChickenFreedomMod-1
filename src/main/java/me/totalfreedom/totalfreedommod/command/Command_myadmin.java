@@ -31,7 +31,6 @@ public class Command_myadmin extends FreedomCommand
         Player init = null;
         Admin target = getAdmin(playerSender);
         Player targetPlayer = playerSender;
-        String targetIp = Ips.getIp(targetPlayer);
 
         // -o switch
         if (args[0].equals("-o"))
@@ -58,6 +57,8 @@ public class Command_myadmin extends FreedomCommand
                 return false;
             }
         }
+
+        String targetIp = Ips.getIp(targetPlayer);
 
         switch (args[0])
         {

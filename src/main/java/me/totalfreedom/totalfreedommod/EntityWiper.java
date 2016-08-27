@@ -1,15 +1,17 @@
 package me.totalfreedom.totalfreedommod;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import me.totalfreedom.totalfreedommod.config.ConfigEntry;
 import me.totalfreedom.totalfreedommod.util.FUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.World;
-import org.bukkit.block.BlockState;
 import org.bukkit.entity.AreaEffectCloud;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.EnderSignal;
@@ -25,9 +27,7 @@ import org.bukkit.entity.ThrownExpBottle;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -53,6 +53,8 @@ public class EntityWiper extends FreedomService
         wipables.add(ThrownPotion.class);
         wipables.add(ThrownExpBottle.class);
         wipables.add(AreaEffectCloud.class);
+        wipables.add(Minecart.class);
+        wipables.add(Boat.class);
     }
 
     @Override
@@ -69,7 +71,7 @@ public class EntityWiper extends FreedomService
             @Override
             public void run()
             {
-                wipeEntities(!ConfigEntry.ALLOW_EXPLOSIONS.getBoolean(), false);
+                wipeEntities();
             }
         }.runTaskTimer(plugin, WIPE_RATE, WIPE_RATE);
 
@@ -82,78 +84,97 @@ public class EntityWiper extends FreedomService
         wipeTask = null;
     }
 
-    public boolean canWipe(Entity entity, boolean wipeExplosives, boolean wipeVehicles)
+    public boolean isWipeable(Entity entity)
     {
-        if (wipeExplosives)
+        for (Class<? extends Entity> c : wipables)
         {
-            if (Explosive.class.isAssignableFrom(entity.getClass()))
+            if (c.isAssignableFrom(entity.getClass()))
             {
                 return true;
             }
         }
-
-        if (wipeVehicles)
-        {
-            if (Boat.class.isAssignableFrom(entity.getClass()))
-            {
-                return true;
-            }
-            else if (Minecart.class.isAssignableFrom(entity.getClass()))
-            {
-                return true;
-            }
-        }
-
-        Iterator<Class<? extends Entity>> it = wipables.iterator();
-        while (it.hasNext())
-        {
-            if (it.next().isAssignableFrom(entity.getClass()))
-            {
-                return true;
-            }
-        }
-
         return false;
     }
 
-    public int wipeEntities(boolean wipeExplosives, boolean wipeVehicles)
+    public int wipeEntities()
+    {
+        int removed = 0;
+        Iterator<World> worlds = server.getWorlds().iterator();
+        while (worlds.hasNext())
+        {
+            removed += wipeEntities(worlds.next());
+        }
+        return removed;
+    }
+
+    public int wipeEntities(World world)
     {
         int removed = 0;
 
-        Iterator<World> worlds = Bukkit.getWorlds().iterator();
-        while (worlds.hasNext())
+        boolean wipeExp = ConfigEntry.ALLOW_EXPLOSIONS.getBoolean();
+        Iterator<Entity> e = world.getEntities().iterator();
+
+        Map<Chunk, List<Entity>> cem = new HashMap<>();
+        while (e.hasNext())
         {
-            Iterator<Entity> entities = worlds.next().getEntities().iterator();
-            while (entities.hasNext())
+            final Entity en = e.next();
+
+            if (wipeExp && Explosive.class.isAssignableFrom(en.getClass()))
             {
-                Entity entity = entities.next();
-                if (canWipe(entity, wipeExplosives, wipeVehicles))
-                {
-                    entity.remove();
-                    removed++;
-                }
+                en.remove();
+                removed++;
+            }
+
+            if (!isWipeable(en))
+            {
+                continue;
+            }
+
+            Chunk c = en.getLocation().getChunk();
+            List<Entity> cel = cem.get(c);
+            if (cel == null)
+            {
+                cem.put(c, new ArrayList<>(Arrays.asList(en)));
+            }
+            else
+            {
+                cel.add(en);
             }
         }
 
+        for (Chunk c : cem.keySet())
+        {
+            List<Entity> cel = cem.get(c);
+
+            if (cel.size() < 30)
+            {
+                continue;
+            }
+
+            for (Entity en : cel)
+            {
+                en.remove();
+            }
+        }
         return removed;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onContainerBreak(BlockBreakEvent event)
+    public void onItemSpawn(ItemSpawnEvent event)
     {
         if (!ConfigEntry.AUTO_ENTITY_WIPE.getBoolean())
         {
             return;
         }
 
-        BlockState state = event.getBlock().getState();
-        if (!(state instanceof InventoryHolder))
+        final Item e = event.getEntity();
+        new BukkitRunnable()
         {
-            return;
-        }
-
-        Inventory inv = ((InventoryHolder) state).getInventory();
-        inv.clear();
+            @Override
+            public void run()
+            {
+                e.remove();
+            }
+        }.runTaskLater(plugin, 20L * 20L);
     }
-
 }
