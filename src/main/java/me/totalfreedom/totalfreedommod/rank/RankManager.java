@@ -142,6 +142,12 @@ public class RankManager extends FreedomService
                 fPlayer.setSuperadminIdVerified(true);
                 plugin.al.updateLastLogin(player);
             }
+
+            if (!plugin.al.getAdmin(player).hasLoginMessage())
+            {
+                player.sendMessage(ChatColor.RED + "You currently don't have any verification password set."
+                        + "\nTo set it, do " + ChatColor.AQUA + "/verify set <password>");
+            }
         }
 
         // Handle impostors

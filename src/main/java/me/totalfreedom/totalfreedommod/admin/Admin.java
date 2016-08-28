@@ -38,6 +38,9 @@ public class Admin implements ConfigLoadable, ConfigSavable, Validatable
     @Getter
     @Setter
     private String loginMessage = null;
+    @Getter
+    @Setter
+    private String password = null; // Temp fix
 
     public Admin(Player player)
     {
@@ -62,7 +65,7 @@ public class Admin implements ConfigLoadable, ConfigSavable, Validatable
                 .append("- Custom Login Message: ").append(loginMessage).append("\n")
                 .append("- Rank: ").append(rank.getName()).append("\n")
                 .append("- Is Active: ").append(active);
-
+        // Password don't show up in this section
         return output.toString();
     }
 
@@ -84,6 +87,7 @@ public class Admin implements ConfigLoadable, ConfigSavable, Validatable
         ips.addAll(cs.getStringList("ips"));
         lastLogin = FUtil.stringToDate(cs.getString("last_login"));
         loginMessage = cs.getString("login_message", null);
+        password = cs.getString("verify_pass", null);
     }
 
     @Override
@@ -96,6 +100,7 @@ public class Admin implements ConfigLoadable, ConfigSavable, Validatable
         cs.set("ips", Lists.newArrayList(ips));
         cs.set("last_login", FUtil.dateToString(lastLogin));
         cs.set("login_message", loginMessage);
+        cs.set("verify_pass", password);
     }
 
     public boolean isAtLeast(Rank pRank)
@@ -106,6 +111,21 @@ public class Admin implements ConfigLoadable, ConfigSavable, Validatable
     public boolean hasLoginMessage()
     {
         return loginMessage != null && !loginMessage.isEmpty();
+    }
+
+    public boolean hasPassword()
+    {
+        return password != null && !password.isEmpty();
+    }
+
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public void setPassword(String newpassword)
+    {
+        password = newpassword;
     }
 
     // Util IP methods
