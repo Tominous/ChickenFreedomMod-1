@@ -42,7 +42,7 @@ public class Command_doom extends FreedomCommand
         Admin admin = getAdmin(player);
         if (admin != null)
         {
-            FUtil.adminAction(sender.getName(), "Removing " + player.getName() + " from the superadmin list", true);
+            FUtil.adminAction(sender.getName(), "Removing " + player.getName() + " from the admin list", true);
             plugin.al.removeAdmin(admin);
         }
 
